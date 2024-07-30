@@ -1,0 +1,39 @@
+services:
+  server:
+    build:
+      context: docker
+    volumes:
+      - ./:/src
+      - go_pkg:/go/pkg
+      - go_cache:/go-cache
+    working_dir: /src
+    ports:
+      - '8080:8080'
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      - PUBSUB_PROJECT_ID=local
+      - PUBSUB_EMULATOR_HOST=pubsub:8681
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+
+  pubsub:
+    image: messagebird/gcloud-pubsub-emulator:latest
+    restart: unless-stopped
+    ports:
+      - '8681:8681'
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+volumes:
+  go_pkg:
+  go_cache:
